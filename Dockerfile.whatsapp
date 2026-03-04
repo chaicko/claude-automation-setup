@@ -1,0 +1,19 @@
+FROM golang:1.22-alpine AS builder
+
+RUN apk add --no-cache git gcc musl-dev
+
+WORKDIR /build
+
+# Build whatsapp-mcp from source
+RUN git clone --depth 1 https://github.com/lharries/whatsapp-mcp.git . \
+    && go build -o whatsapp-mcp ./...
+
+FROM alpine:3.19
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /build/whatsapp-mcp /usr/local/bin/whatsapp-mcp
+
+VOLUME ["/data"]
+ENV WHATSAPP_DB_PATH=/data/whatsapp.db
+
+ENTRYPOINT ["/usr/local/bin/whatsapp-mcp"]

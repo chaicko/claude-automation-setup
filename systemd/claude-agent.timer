@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Claude Automation Agent every 15 minutes
+Requires=claude-agent.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

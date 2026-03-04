@@ -1,0 +1,59 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    runtime: nvidia
+    environment:
+      - OLLAMA_NUM_GPU=1
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: >
+      sh -c "ollama pull ${OLLAMA_MODEL:-qwen2.5:7b} && echo 'Model ready'"
+    restart: "no"
+
+  whatsapp-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.whatsapp
+    container_name: whatsapp-mcp
+    volumes:
+      - ./data/whatsapp:/data
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claude-agent
+    env_file: .env
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434/v1
+      - DATA_DIR=/data
+      - WHATSAPP_MCP_BIN=/usr/local/bin/whatsapp-mcp
+    volumes:
+      - ./data:/data
+    depends_on:
+      - ollama
+      - whatsapp-mcp
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

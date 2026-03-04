@@ -13,7 +13,7 @@ Reply **YES** / **NO** / **EDIT \<text\>** to approve or reject any action.
 ## Prerequisites
 
 **Home server** (where the agent runs):
-- Linux (Fedora, Ubuntu, or Debian)
+- Linux (NixOS, Fedora, Ubuntu, or Debian)
 - NVIDIA GPU with ≥6GB VRAM (GTX 1060 or better) — for Ollama local inference
 - Internet access for Gmail/Calendar OAuth
 
@@ -24,7 +24,21 @@ Reply **YES** / **NO** / **EDIT \<text\>** to approve or reject any action.
 
 ## Quick Start
 
-### Option A — Docker Compose (recommended)
+### Option A — NixOS flake (recommended for NixOS)
+
+```nix
+# In your server's flake.nix inputs:
+claude-agent.url = "github:chaicko/claude-automation-setup";
+
+# In your nixosConfigurations modules:
+claude-agent.nixosModules.default
+{ services.claude-agent.enable = true;
+  services.claude-agent.envFile = "/etc/claude-agent/env"; }
+```
+
+Full instructions: [docs/nixos-setup.md](docs/nixos-setup.md)
+
+### Option C — Docker Compose
 
 ```bash
 git clone https://github.com/chaicko/claude-automation-setup.git
@@ -39,7 +53,7 @@ docker compose run --rm agent --setup
 docker compose up -d
 ```
 
-### Option B — Bare metal
+### Option D — Bare metal (Fedora/Ubuntu/Debian)
 
 ```bash
 git clone https://github.com/chaicko/claude-automation-setup.git
@@ -97,7 +111,8 @@ All config in `.env` (copy from `.env.example`):
 
 ## Docs
 
-- [First-time setup](docs/first-time-setup.md) — OAuth flows, WhatsApp QR scan
+- [NixOS setup](docs/nixos-setup.md) — Flake module, NVIDIA drivers, OAuth on NixOS
+- [First-time setup](docs/first-time-setup.md) — OAuth flows, WhatsApp QR scan (non-NixOS)
 - [Approval flow](docs/approval-flow.md) — How YES/NO/EDIT works in detail
 - [Local vs cloud LLM](docs/local-vs-cloud-llm.md) — Ollama vs Anthropic API
 - [Adding capabilities](docs/adding-capabilities.md) — How to add new handlers

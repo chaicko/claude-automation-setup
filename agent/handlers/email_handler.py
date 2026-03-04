@@ -138,7 +138,6 @@ class EmailHandler:
             logger.warning(f"LLM said reply needed but no draft for email {message_id}")
             return
 
-        # Create pending action
         action_id = create_pending_action(
             action_type="send_email",
             payload={
@@ -147,15 +146,14 @@ class EmailHandler:
                 "body": draft,
                 "replyToMessageId": message_id,
             },
-            whatsapp_message=(
+            whatsapp_message=lambda aid: (
                 f"📧 Email from {sender}\n"
                 f"Subject: {subject}\n\n"
                 f"Draft reply:\n{draft}\n\n"
-                f"Reply YES {action_id} / NO {action_id} / EDIT <text> {action_id}"
+                f"Reply YES {aid} / NO {aid} / EDIT <text> {aid}"
             ),
         )
 
-        # Send WhatsApp notification
         if self.notify_number:
             try:
                 await self.mcp.execute_tool_call("whatsapp__send_message", {

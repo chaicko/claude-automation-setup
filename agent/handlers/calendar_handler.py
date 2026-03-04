@@ -118,11 +118,11 @@ class CalendarHandler:
         action_id = create_pending_action(
             action_type="create_calendar_event",
             payload=payload,
-            whatsapp_message=(
+            whatsapp_message=lambda aid: (
                 f"📅 Create event: {title}\n"
                 f"🕐 {start_time} → {end_time}\n"
                 f"{description}\n\n"
-                f"Reply YES {action_id} / NO {action_id}"
+                f"Reply YES {aid} / NO {aid}"
             ),
         )
 

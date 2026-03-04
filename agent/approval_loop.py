@@ -14,7 +14,7 @@ import re
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -54,15 +54,24 @@ def _append_log(entry: dict):
 def create_pending_action(
     action_type: str,
     payload: dict,
-    whatsapp_message: str,
+    whatsapp_message: str | Callable[[str], str],
     expiry_hours: int = DEFAULT_EXPIRY_HOURS,
 ) -> str:
     """
     Register a pending action awaiting approval.
     Returns the action ID to include in the WhatsApp message.
+
+    whatsapp_message can be a plain string or a callable that receives the
+    action_id and returns the message string. Use the callable form when the
+    message needs to embed the action_id:
+
+        create_pending_action(..., whatsapp_message=lambda aid: f"Reply YES {aid}")
     """
     action_id = str(uuid.uuid4())[:8]
     expires_at = (datetime.now(timezone.utc) + timedelta(hours=expiry_hours)).isoformat()
+
+    if callable(whatsapp_message):
+        whatsapp_message = whatsapp_message(action_id)
 
     pending = _load_pending()
     pending[action_id] = {
